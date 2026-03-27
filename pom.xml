@@ -31,6 +31,7 @@
     <h2.version>2.3.232</h2.version>
     <payara.version>6.2025.3</payara.version>
     <payara.arquillian.adapter.version>3.1</payara.arquillian.adapter.version>
+    <jmeter-maven-plugin.version>3.8.0</jmeter-maven-plugin.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>    
   </properties>
   <dependencyManagement>
@@ -91,6 +92,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>5.2.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
       <version>3.27.3</version>
@@ -130,6 +137,33 @@
         <version>3.4.0</version>
         <configuration>
           <filteringDeploymentDescriptors>true</filteringDeploymentDescriptors>
+        </configuration>
+      </plugin>
+      <!-- JMeter Maven Plugin for load testing -->
+      <plugin>
+        <groupId>com.lazerycode.jmeter</groupId>
+        <artifactId>jmeter-maven-plugin</artifactId>
+        <version>3.8.0</version>
+        <executions>
+          <execution>
+            <?m2e execute onConfiguration?>
+            <id>configuration</id>
+            <goals>
+              <goal>configure</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>jmeter-tests</id>
+            <phase>integration-test</phase>
+            <goals>
+              <goal>jmeter</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <testFilesDirectory>src/test/jmeter</testFilesDirectory>
+          <resultsFileFormat>xml</resultsFileFormat>
+          <generateReports>true</generateReports>
         </configuration>
       </plugin>
     </plugins>
@@ -460,6 +494,9 @@
               <systemPropertyVariables>
                 <arquillian.launch>openliberty</arquillian.launch>
               </systemPropertyVariables>
+              <excludes>
+                <exclude>**/BookingServiceTest.java</exclude>
+              </excludes>
             </configuration>
           </plugin>
         </plugins>
