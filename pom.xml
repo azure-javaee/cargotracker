@@ -35,9 +35,7 @@
   </properties>
   <dependencyManagement>
     <dependencies>
-      <!-- Arquillian Bill Of Management used to reduce collision between testing
-      dependencies. Using a dependency manager we don't need to specify the version of
-      each Arquillian dependency. -->
+      <!-- Arquillian Bill Of Management -->
       <dependency>
         <groupId>org.jboss.arquillian</groupId>
         <artifactId>arquillian-bom</artifactId>
@@ -52,6 +50,18 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      <!-- Define versions for dependencies -->
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>3.17.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hamcrest</groupId>
+        <artifactId>hamcrest</artifactId>
+        <version>2.2</version>
+        <scope>test</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
   <dependencies>
@@ -61,7 +71,7 @@
       <version>${jakartaee.api.version}</version>
       <scope>provided</scope>
     </dependency>
-    <!-- The third-party dependencies this application has -->
+    <!-- Third-party dependencies -->
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
@@ -72,7 +82,7 @@
       <version>14.0.5</version>
       <classifier>jakarta</classifier>
     </dependency>
-    <!-- We need a Jersey specific dependency for property name constants -->
+    <!-- Jersey dependency for property name constants -->
     <dependency>
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-server</artifactId>
@@ -102,8 +112,6 @@
       <artifactId>arquillian-junit5-container</artifactId>
       <scope>test</scope>
     </dependency>
-    <!-- Resolvers are needed in the Arquillian tests. This is used for adding all
-    the runtime dependencies inside a testing war. -->
     <dependency>
       <groupId>org.jboss.shrinkwrap.resolver</groupId>
       <artifactId>shrinkwrap-resolver-impl-maven</artifactId>
@@ -114,7 +122,7 @@
       <artifactId>arquillian-protocol-servlet-jakarta</artifactId>
       <scope>test</scope>
     </dependency>
-    <!-- Needed for Arquillian to log -->
+    <!-- Arquillian logging -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
@@ -134,25 +142,34 @@
       </plugin>
     </plugins>
   </build>
+  <!-- Add Open Liberty plugin repository globally -->
+  <pluginRepositories>
+    <pluginRepository>
+      <id>openliberty</id>
+      <url>https://repo1.maven.org/maven2/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </pluginRepository>
+  </pluginRepositories>
   <profiles>
-    <!-- The currently supported application servers are represented as profiles -->
+    <!-- Payara profile -->
     <profile>
       <id>payara</id>
       <activation>
         <activeByDefault>true</activeByDefault>
       </activation>
       <properties>
-        <!-- Application properties -->
         <webapp.graphTraversalUrl>http://localhost:8080/cargo-tracker/rest/graph-traversal/shortest-path</webapp.graphTraversalUrl>
         <db.driverClass>org.h2.jdbcx.JdbcDataSource</db.driverClass>
-        <!-- H2 file engine requires an absolute path, e.g., ~/name, ./name or a full-qualified
-        path name (it should include driver name under Windows). -->
         <db.jdbcUrl>jdbc:h2:file:./cargo-tracker-data/cargo-tracker-database</db.jdbcUrl>
         <db.user/>
         <db.password/>
       </properties>
       <dependencies>
-        <!-- Embedding the JDBC driver in the WAR works in Payara -->
         <dependency>
           <groupId>com.h2database</groupId>
           <artifactId>h2</artifactId>
@@ -165,14 +182,12 @@
           <version>${payara.version}</version>
           <scope>test</scope>
         </dependency>
-        <!-- Payara Micro Managed Container Adapter -->
         <dependency>
           <groupId>fish.payara.arquillian</groupId>
           <artifactId>arquillian-payara-micro-managed</artifactId>
           <version>${payara.arquillian.adapter.version}</version>
           <scope>test</scope>
         </dependency>
-        <!-- Needed at the moment for Jakarta EE 10 support -->
         <dependency>
           <groupId>fish.payara.arquillian</groupId>
           <artifactId>payara-client-ee9</artifactId>
@@ -201,37 +216,30 @@
         </plugins>
       </build>
     </profile>
+    <!-- GlassFish profile -->
     <profile>
       <id>glassfish</id>
       <properties>
         <glassfish.version>7.0.22</glassfish.version>
-        <!-- Application properties -->
         <webapp.graphTraversalUrl>http://localhost:8080/cargo-tracker/rest/graph-traversal/shortest-path</webapp.graphTraversalUrl>
         <db.driverClass>org.h2.jdbcx.JdbcDataSource</db.driverClass>
-        <!-- H2 file engine requires an absolute path, e.g., ~/name, ./name or a full-qualified
-        path name (it should include driver name under Windows). -->
         <db.jdbcUrl>jdbc:h2:file:./cargo-tracker-data/cargo-tracker-database</db.jdbcUrl>
         <db.user/>
         <db.password/>
       </properties>
       <dependencies>
-        <!-- Embedding the JDBC driver in the WAR works in GlassFish -->
         <dependency>
           <groupId>com.h2database</groupId>
           <artifactId>h2</artifactId>
           <version>${h2.version}</version>
           <scope>runtime</scope>
         </dependency>
-        <!-- The Arquillian connector for GlassFish. This lets Arquillian
-        start and stop GlassFish, and deploy and undeploy war files to it. -->
         <dependency>
           <groupId>org.jboss.arquillian.container</groupId>
           <artifactId>arquillian-glassfish-managed-6</artifactId>
           <version>1.0.0.Alpha1</version>
           <scope>test</scope>
         </dependency>
-        <!-- This dependency is required to replace a milestone dependency of
-          arquillian-glassfish-managed-6 which isn't deployed in Maven Central -->
         <dependency>
           <groupId>org.glassfish.jersey.inject</groupId>
           <artifactId>jersey-hk2</artifactId>
@@ -270,7 +278,6 @@
               </container>
             </configuration>
           </plugin>
-          <!-- This installs GlassFish into the build directory so that it's used in tests -->
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-dependency-plugin</artifactId>
@@ -297,7 +304,6 @@
               </execution>
             </executions>
           </plugin>
-          <!-- This modifies configuration of GlassFish for tests - changes the HTTP port to 9090 -->
           <plugin>
             <artifactId>maven-antrun-plugin</artifactId>
             <version>3.1.0</version>
@@ -318,7 +324,7 @@
         </plugins>
       </build>
     </profile>
-    <!-- Cloud/production deployment using Payara and PostgreSQL. -->
+    <!-- Cloud profile -->
     <profile>
       <id>cloud</id>
       <activation>
@@ -327,20 +333,11 @@
       <properties>
         <webapp.graphTraversalUrl>http://localhost:8080/rest/graph-traversal/shortest-path</webapp.graphTraversalUrl>
         <db.driverClass>org.postgresql.ds.PGPoolingDataSource</db.driverClass>
-        <!-- Pass in via command line. For example:
-             ./mvnw clean package -Pcloud 
-                                  -DpostgreSqlJdbcUrl="jdbc:postgresql://host.docker.internal:5432/postgres" 
-                                  -DpostgreSqlUsername="postgres" -DpostgreSqlPassword="postgres"
-        -->
-        <!--suppress UnresolvedMavenProperty -->
         <db.jdbcUrl>${postgreSqlJdbcUrl}</db.jdbcUrl>
-        <!--suppress UnresolvedMavenProperty -->
         <db.user>${postgreSqlUsername}</db.user>
-        <!--suppress UnresolvedMavenProperty -->
         <db.password>${postgreSqlPassword}</db.password>
       </properties>
       <dependencies>
-        <!-- Embedding the JDBC driver in the WAR works in Payara Micro -->
         <dependency>
           <groupId>com.h2database</groupId>
           <artifactId>h2</artifactId>
@@ -397,6 +394,7 @@
         </plugins>
       </build>
     </profile>
+    <!-- Open Liberty profile -->
     <profile>
       <id>openliberty</id>
       <activation>
@@ -408,7 +406,6 @@
         <db.jdbcUrl>jdbc:hsqldb:file:./cargo-tracker-data/cargo-tracker-database;create=true</db.jdbcUrl>
       </properties>
       <dependencies>
-        <!-- Provided dependencies -->
         <dependency>
           <groupId>org.hsqldb</groupId>
           <artifactId>hsqldb</artifactId>
@@ -425,7 +422,6 @@
       </dependencies>
       <build>
         <plugins>
-        <!-- Enable liberty-maven plugin -->
           <plugin>
             <groupId>io.openliberty.tools</groupId>
             <artifactId>liberty-maven-plugin</artifactId>
@@ -464,6 +460,184 @@
           </plugin>
         </plugins>
       </build>
+    </profile>
+    <!-- JMeter profile for integration testing -->
+    <profile>
+      <id>jmeter</id>
+      <properties>
+        <jmeter.version>5.6.3</jmeter.version>
+        <skipUnitTests>true</skipUnitTests>
+        <skipPerformanceTests>false</skipPerformanceTests>
+        <jacoco.version>0.8.11</jacoco.version>
+        <jacoco.outputDir>${project.build.directory}/jacoco-reports</jacoco.outputDir>
+        <jacoco.itReportPath>${jacoco.outputDir}/jacoco-it.exec</jacoco.itReportPath>
+        <jacoco.includes>org.eclipse.cargotracker.*</jacoco.includes>
+        <sonar.jacoco.reportPath>${jacoco.itReportPath}</sonar.jacoco.reportPath>
+      </properties>
+      <build>
+        <plugins>
+          <!-- JaCoCo Plugin for Code Coverage -->
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>${jacoco.version}</version>
+            <executions>
+              <execution>
+                <id>prepare-it-agent</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>prepare-agent</goal>
+                </goals>
+                <configuration>
+                  <destFile>${jacoco.itReportPath}</destFile>
+                  <propertyName>jacoco.agent.itArgLine</propertyName>
+                  <includes>${jacoco.includes}</includes>
+                  <append>true</append>
+                  <excludes>**/test/**</excludes>
+                </configuration>
+              </execution>
+              <execution>
+                <id>report-it</id>
+                <phase>post-integration-test</phase>
+                <goals>
+                  <goal>report</goal>
+                </goals>
+                <configuration>
+                  <dataFile>${jacoco.itReportPath}</dataFile>
+                  <outputDirectory>${jacoco.outputDir}/html</outputDirectory>
+                </configuration>
+              </execution>
+              <execution>
+                <id>b-dump-coverage</id>
+                <phase>integration-test</phase>
+                <goals>
+                  <goal>dump</goal>
+                </goals>
+                <configuration>
+                  <destFile>${jacoco.itReportPath}</destFile>
+                  <append>true</append>
+                  <address>localhost</address>
+                  <port>8080</port>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <!-- Liberty Maven Plugin -->
+          <plugin>
+            <groupId>io.openliberty.tools</groupId>
+            <artifactId>liberty-maven-plugin</artifactId>
+            <version>3.11.3</version>
+            <executions>
+              <execution>
+                <id>package-app</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>package</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>install-app</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>deploy</goal>
+                </goals>
+                <configuration>
+                  <deployPackages>all</deployPackages>
+                </configuration>
+              </execution>
+              <execution>
+                <id>start-liberty-server</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>start</goal>
+                </goals>
+                <configuration>
+                  <serverStartTimeout>120</serverStartTimeout>
+                  <verifyTimeout>60</verifyTimeout>
+                  <jvmOptions>
+                    <param>-javaagent:${settings.localRepository}/org/jacoco/org.jacoco.agent/${jacoco.version}/org.jacoco.agent-${jacoco.version}-runtime.jar=destfile=${jacoco.itReportPath},includes=${jacoco.includes},append=true,output=tcpserver,address=*,port=6300</param>
+                    <param>-Djava.net.preferIPv4Stack=true</param>
+                    <param>-Djacoco.agent.includes=${jacoco.includes}</param>
+                  </jvmOptions>
+                </configuration>
+              </execution>
+              <execution>
+                <id>z-stop-liberty-server</id>
+                <phase>post-integration-test</phase>
+                <goals>
+                  <goal>stop</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <!-- JMeter Maven Plugin -->
+          <plugin>
+            <groupId>com.lazerycode.jmeter</groupId>
+            <artifactId>jmeter-maven-plugin</artifactId>
+            <version>3.8.0</version>
+            <executions>
+              <execution>
+                <id>configuration</id>
+                <goals>
+                  <goal>configure</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>jmeter-tests</id>
+                <phase>integration-test</phase>
+                <goals>
+                  <goal>jmeter</goal>
+                </goals>
+                <configuration>
+                  <testFilesDirectory>src/test/jmeter</testFilesDirectory>
+                  <resultsDirectory>target/jmeter/results</resultsDirectory>
+                  <testResultsTimestamp>false</testResultsTimestamp>
+                  <jmeterExtensions>
+                    <artifact>kg.apc:jmeter-plugins-manager:1.6</artifact>
+                  </jmeterExtensions>
+                </configuration>
+              </execution>
+              <execution>
+                <id>jmeter-check-results</id>
+                <phase>integration-test</phase>
+                <goals>
+                  <goal>results</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <!-- Skip unit tests -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>${surefire.version}</version>
+            <configuration>
+              <skip>${skipUnitTests}</skip>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.jmeter</groupId>
+          <artifactId>ApacheJMeter_core</artifactId>
+          <version>${jmeter.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.jmeter</groupId>
+          <artifactId>ApacheJMeter_http</artifactId>
+          <version>${jmeter.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.jacoco</groupId>
+          <artifactId>org.jacoco.agent</artifactId>
+          <version>${jacoco.version}</version>
+          <classifier>runtime</classifier>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
     </profile>
   </profiles>
 </project>
